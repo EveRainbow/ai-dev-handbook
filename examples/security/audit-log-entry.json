@@ -1,0 +1,32 @@
+{
+  "_comment": "Example MCP tool-use audit log entry. Log one entry per tool call the agent makes.",
+
+  "timestamp": "2026-03-08T14:23:01.452Z",
+  "session_id": "sess_abc123",
+  "agent_id": "claude-sonnet-4-6",
+
+  "tool": {
+    "name": "bash",
+    "server": "mcp-terminal",
+    "version": "1.2.0"
+  },
+
+  "action": {
+    "type": "execute",
+    "input": {
+      "command": "git diff HEAD~1 -- src/auth.ts"
+    }
+  },
+
+  "outcome": {
+    "status": "success",
+    "output_bytes": 1842,
+    "duration_ms": 234
+  },
+
+  "context": {
+    "task": "Review authentication changes before PR",
+    "triggered_by": "user",
+    "human_approved": false
+  }
+}
