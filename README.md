@@ -5,6 +5,8 @@
 > A plain-English guide to AI-assisted software development
 > *Written with AI assistance*
 
+I made this to learn. I'm still applying it. If you're also figuring out how to work seriously with AI tools — not just vibe code — this might help. Work in progress.
+
 ---
 
 ## 🧭 Core Principles
