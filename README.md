@@ -5,7 +5,7 @@
 > A plain-English guide to AI-assisted software development
 > *Written with AI assistance*
 
-I made this to learn. I'm still applying it. If you're also figuring out how to work seriously with AI tools — not just vibe code — this might help. Work in progress.
+I made this to learn. I'm still applying it. If you're also figuring out how to work seriously with AI tools — not just vibe code — this might help. Work in progress — contributions welcome.
 
 ---
 
@@ -52,6 +52,19 @@ AI coding tools have grown up. The industry now has a name for the mature approa
 - **Vibe coding** (describing what you want and getting code back) is great for prototypes and UI work
 - **Agentic engineering** is the production-ready version — it adds structure, checkpoints, and verification
 - **The golden rule:** treat all AI-generated code as untrusted until it passes automated tests, security scans, and human review
+
+---
+
+## 🤝 Contributing
+
+This handbook improves through real-world experience — yours included. If you've found something that works (or doesn't), please share it.
+
+**Quick ways to help:**
+- Fix a typo or broken link → open a PR directly
+- Spot outdated advice → open an issue
+- Have a workflow pattern worth sharing → open an issue or draft a PR
+
+[See CONTRIBUTING.md for full guidelines →](CONTRIBUTING.md)
 
 ---
 

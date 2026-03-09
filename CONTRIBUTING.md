@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions are welcome — this handbook improves through real-world experience. Corrections, new examples, and new sections all help.
+This handbook improves through real-world experience. If you've shipped something with AI tools — or found advice here that was wrong — please contribute. Every fix makes it better for the next person.
 
 ## ✅ What we're looking for
 
@@ -9,11 +9,7 @@ Contributions are welcome — this handbook improves through real-world experien
 - New workflow patterns that others would benefit from
 - Clearer explanations of complex concepts
 
-## 🚫 What we're not looking for
-
-- Tool-specific tips that don't generalise
-- Opinion without experience behind it
-- Marketing for specific products
+**Good first contributions:** typos, broken links, outdated tool names, or adding a real example to an existing section.
 
 ## 🔄 How to contribute
 
@@ -27,6 +23,12 @@ Contributions are welcome — this handbook improves through real-world experien
 3. Make your changes
 4. Open a PR with a clear description of what changed and why
 5. Be open to feedback
+
+## 🚫 What we're not looking for
+
+- Tool-specific tips that don't generalise
+- Opinion without experience behind it
+- Marketing for specific products
 
 ## 💬 Guidelines
 
