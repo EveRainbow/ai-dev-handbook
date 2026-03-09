@@ -17,9 +17,11 @@ Shared UI:     packages/ui (no default exports — named exports are easier for 
 ## 5. Code Style
 Named exports, 2-space indent. See packages/ui/Button.tsx as reference. *(Replace with a real path from your project.)*
 Commits: Conventional Commits — format: type(scope): description
-  # e.g., feat(auth): add JWT refresh endpoint
-  # e.g., fix(payments): handle Stripe webhook timeout
-  # types: feat | fix | docs | refactor | test | chore
+```
+# e.g., feat(auth): add JWT refresh endpoint
+# e.g., fix(payments): handle Stripe webhook timeout
+# types: feat | fix | docs | refactor | test | chore
+```
 
 ## 6. Git Rules
 Use git mv for renames (not mv + git add) — this preserves file history in git log and avoids git treating the rename as a delete + create.
@@ -35,11 +37,11 @@ Any PR must add or update tests for touched logic.
 
 ## 9. Escalation
 Changes affecting owned paths → request review from CODEOWNERS.
-  # CODEOWNERS is a file at .github/CODEOWNERS that auto-assigns reviewers by directory.
+_(CODEOWNERS: `.github/CODEOWNERS` auto-assigns reviewers by directory.)_
 Risky ops (schema migration, secrets) → open a PR and tag @team/owners.
 
 ## 10. Done Checklist
-[ ] Typecheck/lint each changed file
-[ ] Unit tests pass
-[ ] No secrets added
-[ ] CI security scans pass
+- [ ] Typecheck/lint each changed file
+- [ ] Unit tests pass
+- [ ] No secrets added
+- [ ] CI security scans pass

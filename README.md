@@ -1,7 +1,6 @@
 # AI Dev Handbook
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Updated](https://img.shields.io/badge/Updated-March%202026-green.svg)
 
 > A plain-English guide to AI-assisted software development
 > *Written with AI assistance*
