@@ -2,10 +2,14 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-> A plain-English guide to AI-assisted software development
+> An opinionated, plain-English handbook for shipping production code with AI agents — workflow, prompting, security, and verification in one place.
 > *Written with AI assistance*
 
-I made this to learn. I'm still applying it. If you're also figuring out how to work seriously with AI tools — not just vibe code — this might help. Work in progress — contributions welcome.
+**For** solo devs, AI tinkerers, and eng leads figuring out how to work seriously with AI tools — not just vibe code.
+
+Work in progress — contributions welcome.
+
+**→ New here? Start with [Workflow](workflow/) — the full cycle from Day 0 to production.**
 
 ---
 
@@ -28,9 +32,6 @@ I made this to learn. I'm still applying it. If you're also figuring out how to 
 | [CI & Quality](ci-and-quality/) | Automated checks every PR must pass before merging |
 | [Security](security/) | Least-privilege model for AI agents and MCP tools |
 | [Verification](verification/) | Defending against hallucinations, phantom packages, and outdated patterns |
-
-> [!TIP]
-> New here? Start with [Workflow](workflow/) — it covers the full cycle from Day 0 to production.
 
 ---
 
