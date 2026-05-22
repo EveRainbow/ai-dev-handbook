@@ -21,7 +21,7 @@ I made this to learn. I'm still applying it. If you're also figuring out how to 
 
 | Guide | What it covers |
 |---|---|
-| [Tools](tools/) | Which AI coding tool to use for which task — vibe coding, manual assist, agentic workflows, agent skills |
+| [Tools](tools/) | Which AI coding tool to use for which task — vibe coding, manual assist, agentic workflows, [agent skills](tools/skills/), [plugins](tools/plugins/) |
 | [Workflow](workflow/) | The Plan → Execute → Verify loop and the full Day 0 → production cycle |
 | [Codebase Setup](codebase-setup/) | Folder structure and how to write effective rules files for your AI agent |
 | [Prompting](prompting/) | How to write effective prompts for debugging and code tasks |

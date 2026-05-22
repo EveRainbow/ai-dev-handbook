@@ -96,6 +96,82 @@ A test suite that catches 80%+ of mutations is a far stronger signal than one th
 
 ---
 
+## 🪝 Format and check before CI sees it
+
+CI is the safety net, not the only one. A `PostToolUse` hook runs a formatter (or linter) the moment the agent edits a file, so the diff arrives in CI already clean. The pattern is short — register a hook in `.claude/settings.json` that matches `Edit|Write` and pipes the changed file path through `jq` into your formatter:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Swap `prettier --write` for whichever formatter your stack uses — `eslint --fix`, `ruff format`, `gofmt -w`, `cargo fmt`. Pair with a `Stop` hook that runs the typechecker before the agent hands control back: *"After every session, run `tsc --noEmit` and tell me about any new errors."* Catches type drift at the source instead of three CI runs later.
+
+Source: [Claude Code hooks reference](https://code.claude.com/docs/en/hooks-guide).
+
+---
+
+## 📊 Evaluating an agent, not just its output
+
+Once you run an agent on a loop — in CI on every PR, as a nightly cron, as a permanent background process — you also need to know whether the *agent itself* is regressing, not just whether its latest output passes. A small eval suite alongside your normal tests:
+
+- **Start with 20–50 tasks**, drawn from real failures you've already seen in production runs. Don't wait for a dataset of hundreds — early changes have large effect sizes, and you find more failures faster by iterating than by collecting.
+- **Each task is a prompt plus a reference solution.** Two engineers reading the prompt and the agent's output should reach the same pass/fail verdict without conferring.
+- **Prefer code-based graders to LLM-as-judge.** A regex match, a `tsc --noEmit` exit code, a specific test passing — those are deterministic. Reserve a model judge for genuinely subjective behavior, and calibrate it against a human grader before trusting it.
+- **Grade outcomes, not paths.** "Did the file end up correct?" beats "Did the agent use the tool I expected?" — the latter punishes valid approaches you didn't anticipate.
+- **Reset the environment per trial.** A fresh repo checkout, a cleared cache. Shared state produces false correlated failures and makes the eval untrustworthy.
+- **Track `pass@1` and `pass^3`** — the probability of success on the first attempt vs. success on all three attempts in a row. The gap between them is your flakiness number.
+- **Read transcripts weekly.** Automated metrics drift quietly; eyes on raw conversations catch grading bugs you'd otherwise miss.
+
+Source: [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents).
+
+---
+
+## 🤖 Tune AI reviewers with REVIEW.md
+
+AI-driven PR reviewers — managed services, self-hosted GitHub Action bots, self-built CI agents — read review-specific instructions from a `REVIEW.md` at the repo root. It complements `CLAUDE.md` / `AGENTS.md` rather than replacing them: those govern how the agent *writes* code, this governs how it *reviews* code. Use `REVIEW.md` to set what counts as a blocking finding for your codebase, cap nit volume, and tell the reviewer to skip paths CI already covers.
+
+A short starter template:
+
+```markdown
+# Review instructions
+
+## What blocks merge
+Reserve blocking severity for findings that would break behavior in production,
+leak data, or block rollback: wrong logic, unscoped database queries, PII in
+logs, non-backward-compatible migrations. Style, naming, and refactoring are nits.
+
+## Cap the nits
+Report at most 5 nits per review. Summarize overflow as "plus N similar items"
+rather than listing each one.
+
+## Do not report
+- Anything CI enforces: lint, formatting, type errors
+- Generated files under `src/gen/` or any `*.lock`
+- Test-only code that intentionally violates production rules
+
+## Always check
+- New API routes have an integration test
+- Log lines don't include email, user IDs, or request bodies
+- Database queries are scoped to the caller's tenant
+```
+
+Keep `REVIEW.md` short — long files dilute the rules that matter. Project background and architectural guidance belong in `CLAUDE.md` / `AGENTS.md`, not here.
+
+Source: [Code Review with Claude](https://code.claude.com/docs/en/code-review).
+
+---
+
 ### 📖 Terms used on this page
 
 <details>

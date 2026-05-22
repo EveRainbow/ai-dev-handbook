@@ -156,6 +156,43 @@ The current best practice is to have both:
 
 The old monolithic `.cursorrules` file still works but is no longer recommended.
 
+### The deletion test
+
+For every line in your rules file, ask: *Would removing this make the agent more likely to make a mistake?* If not, cut the line. Bloated rules files cause models to silently ignore instructions later in the file, so what's left needs to earn its place.
+
+A working keep/cut heuristic:
+
+| ✅ Keep | ❌ Cut |
+|---|---|
+| Bash commands the agent can't guess from `package.json` (`pnpm test:unit -- --shard 1/4`) | Things the agent can derive by reading the code itself |
+| Code-style choices that deviate from language defaults | Standard conventions ("use camelCase", "indent with 2 spaces") |
+| Environment quirks (`DATABASE_URL must point at the read replica for migrations to succeed`) | File-by-file descriptions of the repo layout |
+| Repo etiquette — branch naming, PR title format, who owns what | Tutorials, generic advice ("write clean code"), motivational prose |
+| Non-obvious gotchas (`auth-service retries 3x silently — don't add another wrapper`) | Anything the agent already gets right today without being told |
+
+**Signal the file is too long:** the agent repeatedly violates a rule that's clearly stated there. Prune the rest, then re-test by watching whether behavior actually shifts — if it doesn't, the rule wasn't what was steering it.
+
+Source: [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents).
+
+### Path-scoped rules
+
+When guidance only applies to part of the codebase, lift it out of `CLAUDE.md` into `.claude/rules/*.md`. Each rule file's YAML frontmatter declares a `paths:` glob, and the agent only loads the rule when it's reading a matching file — so testing rules don't bloat sessions that aren't writing tests, API rules don't bloat sessions that aren't writing endpoints.
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
+---
+# API rules
+- Every endpoint validates its input before touching the database.
+- Return errors in the standard `{ code, message }` shape — see `src/lib/errors.ts`.
+- New routes require an integration test under `tests/api/`.
+```
+
+Place at `.claude/rules/api.md`. The rule loads when the agent works in `src/api/`; sessions in `src/components/` never see it. Use the same pattern for security rules, test-writing rules, or anything else with a natural file-scope. This is the documented cure for "CLAUDE.md is too long."
+
+Source: [How Claude remembers your project](https://code.claude.com/docs/en/memory).
+
 ---
 
 ## ⏰ Scheduling Maintenance Tasks

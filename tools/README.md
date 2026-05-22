@@ -32,7 +32,7 @@ Tools like Cursor, Claude Code, and LangGraph can plan a task, execute it in ste
 ## 🏆 The Best Tools Right Now (March 2026)
 
 **For big, complex reasoning across many files:**
-- **Claude Code** — Terminal-based agent with a massive context window (up to 1 million tokens). Excellent for deep debugging, migrations, and multi-file refactors. *(A context window is the amount of text — code, instructions, conversation history — the model can see at once. A token ≈ 1 word or 4 characters. More tokens = more of your codebase in view at once.)*
+- **Claude Code** — Agentic coding assistant with a massive context window (up to 1 million tokens). Available across surfaces — terminal CLI, VS Code, JetBrains, Desktop app, and web (`claude.ai/code`) — with `CLAUDE.md`, MCP servers, and settings shared between them, so you can hand a session off mid-task. Excellent for deep debugging, migrations, and multi-file refactors. In-session checkpoints (`Esc Esc` or `/rewind`) let you undo the agent's edits without reaching for git. The Claude Agent SDK exposes the same memory, permissions, and sub-agent primitives if you need to build your own agent on top. *(A context window is the amount of text — code, instructions, conversation history — the model can see at once. A token ≈ 1 word or 4 characters. More tokens = more of your codebase in view at once.)* Source: [Claude 4](https://www.anthropic.com/news/claude-4), [Sonnet 4.5](https://www.anthropic.com/news/claude-sonnet-4-5).
 - **Cursor** — Best-in-class IDE agent with strong built-in guardrails, rule files (see [codebase-setup](../codebase-setup/README.md) for how to write them), and enterprise controls. The go-to for daily production coding.
 
 **For safe large-scale refactoring:**
@@ -135,6 +135,14 @@ Invoke with `/commit`. The `disable-model-invocation: true` field prevents Claud
 | `/claude-api` | Loads Claude API + Agent SDK reference; also activates when your code imports `anthropic` |
 
 [Full guide: Agent Skills & Slash Commands →](skills/README.md)
+
+---
+
+## 📦 Plugins
+
+When a skill, hook, or MCP-server config is worth sharing across multiple projects or your whole team, bundle it as a Claude Code plugin — a directory with a `.claude-plugin/plugin.json` manifest. Plugins can carry skills, agents, hooks, MCP/LSP servers, monitors, and default settings, all installable from a marketplace.
+
+[Full guide: Plugins →](plugins/README.md)
 
 ---
 

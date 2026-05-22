@@ -25,10 +25,29 @@ graph LR
 > [!TIP]
 > **Verification-Aware Planning** — Attach a specific test or acceptance check to each step upfront. The agent can't move to the next task until the previous one passes its check. This prevents snowballing failures.
 
+> [!TIP]
+> **Bake the done-condition into the session.** Claude Code's `/goal <condition>` keeps the agent working turn after turn until a separate evaluator confirms the condition holds — Verification-Aware Planning operated by the tool itself. Write the condition as something the conversation can prove: `/goal all tests in test/auth pass and the lint step is clean`. Bound it with a fallback so it can't run forever: `or stop after 20 turns`.
+>
+> Source: [Keep Claude working toward a goal](https://code.claude.com/docs/en/goal).
+
 Example — task: *"Add a `created_at` field to the User model and expose it in the API"*:
 - Step 1 check: `tsc --noEmit` passes with no errors
 - Step 2 check: migration runs without errors on a local DB snapshot
 - Step 3 check: `GET /users/:id` returns `created_at` in ISO 8601 format
+
+### Using plan mode
+
+Claude Code and Cursor both ship an explicit *plan mode* — a read-only session state where the agent inspects files and produces a plan but cannot write anything. Use it for the Plan phase rather than chatting freely:
+
+1. Toggle plan mode on (`Shift+Tab` in Claude Code).
+2. Ask for the plan: *"Read `src/auth` and explain how sessions work. Then propose a plan for adding Google OAuth — list every file you'll touch and what changes."*
+3. Press `Ctrl+G` to open the plan in your editor and tighten scope before approving.
+4. Exit plan mode and let the agent implement.
+5. Commit and open a PR.
+
+Skip planning when the change really does fit in one sentence — rename a variable, fix a typo. Use it whenever the work touches more than one file or you're unfamiliar with the area.
+
+Source: [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices).
 
 ### Guardrails to Add
 
@@ -81,6 +100,24 @@ Monitor errors and performance. Feed incidents back into the development loop. U
 
 Long context windows (1M tokens) are impressive but expensive. **RAG (Retrieval-Augmented Generation)** — fetching only the relevant documentation or code snippets at query time rather than loading everything upfront — is dramatically cheaper: some analyses show 100× lower cost. Use RAG to pull in only what the agent needs for the current task, and reserve the full context window for truly complex, multi-file operations.
 
+**Prompt caching for stable prefixes.** RAG is one cost lever; prompt caching is another. When you call the Claude API directly — from a CI script, a custom agent, or an evaluation harness — the system prompt, your `AGENTS.md`, and any pinned reference docs are re-sent on every turn. Marking them as cached cuts the cost of cache-hit reads to roughly 10% of the base input rate:
+
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "system": [
+    { "type": "text",
+      "text": "<your rules.md + architecture.md + style-guide.md>",
+      "cache_control": { "type": "ephemeral" } }
+  ],
+  "messages": [ /* turn-specific content */ ]
+}
+```
+
+The minimum cacheable prefix is 1,024 tokens on Sonnet 4.5+ and 4,096 on Opus 4.5+. Default cache TTL is 5 minutes; opt in to a 1-hour TTL by adding `"ttl": "1h"` to the `cache_control` object — write cost rises to 2× base input but the longer window absorbs more reuse. A 5,000-token prefix replayed across 10 turns costs roughly $54 cached vs. $250 uncached, a ~78% reduction. Claude Code does this automatically for `CLAUDE.md` and recent file reads, so the manual config above is mainly relevant when you're driving the API yourself.
+
+Source: [Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
+
 ---
 
 ## 🤝 Multi-Agent Coordination
@@ -102,6 +139,35 @@ git worktree add ../feature-ui  ui-changes
 
 **Orchestrator pattern.** For complex tasks with dependencies between subtasks, use one agent as orchestrator: it breaks the work into subtasks, assigns them, and reviews results before proceeding. Don't start all agents simultaneously without a dependency graph — if Agent B needs Agent A's output (e.g., a new API endpoint), B must wait.
 
+**Subagents for investigation, not just parallel writes.** The patterns above split *write* work across worktrees. The lighter, more common variant is delegating *read-heavy* work to a subagent that runs in its own context and reports back with a short summary — your main session never sees the file reads, just the conclusion. Define a subagent in `.claude/agents/codebase-explorer.md`:
+
+```markdown
+---
+name: codebase-explorer
+description: Maps how a feature is implemented across the repo
+tools: Read, Grep, Glob
+model: sonnet
+---
+Given a feature name, find every file that touches it. Return:
+entry points, key types, test coverage, known TODO/FIXME.
+Cap the response at 2,000 tokens.
+```
+
+Invoke from the main session — *"Use the codebase-explorer subagent to find every place we touch session refresh, then come back and we'll implement OAuth."* The explorer's file reads stay in its own context; only the summary lands in yours.
+
+**When subagents pay off:** breadth-first questions ("find all X"), audits that touch many files, fresh-context review of code you just wrote (a reviewer without authorship bias). Multi-agent setups cost roughly 15× the tokens of a single chat turn, so reserve them for work where output quality justifies the spend.
+
+**Brief each subagent like a delegated work order.** Dispatching subagents with vague instructions ("research the auth module") causes two of them to do the same read and miss the same gaps. Every dispatch should specify four fields:
+
+| Field | Example |
+|---|---|
+| **Objective** | "List every function that mints a session token." |
+| **Output format** | "Markdown table: file, function, line, return type." |
+| **Tool guidance** | "Use Grep first; only Read full files for the 5 most relevant matches." |
+| **Scope boundary** | "Only `src/auth/`. Do not read `src/api/` — that's a separate subagent." |
+
+Source: [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices), [How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system).
+
 **After parallel work:** review each branch's diff independently, resolve any conflicts manually, then run the full test suite. Per-agent tests won't catch integration failures.
 
 ---
@@ -115,6 +181,10 @@ Agents fail in three distinct ways, each needing a different response:
 | **Loop** | Same failing action 3+ times | Stop. Don't retry the same prompt. |
 | **Divergence** | Output looks correct but goes in the wrong direction | Stop early. Replan. |
 | **Misunderstanding** | Agent edits files outside scope, or asks confused questions | Inspect scope. Add explicit constraints. |
+
+**First, try the in-session rewind.** Press `Esc` twice — or run `/rewind` — to open a list of every prompt in the session. You can restore *code only*, *conversation only*, or *both*; you can also summarize a side discussion to free context without losing the surrounding work. This is the fastest undo when the agent went off-track in the last few turns. It complements git, doesn't replace it — bash-driven file changes and edits from other sessions aren't tracked, so reach for `git diff` (next paragraph) once you've handled the agent's own edits.
+
+Source: [Checkpointing](https://code.claude.com/docs/en/checkpointing).
 
 **Assess the damage first.** Run `git diff` and `git log --oneline` to see exactly what changed before doing anything else.
 
@@ -177,6 +247,10 @@ Co-authored-by: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
 **Review AI-generated PRs for intent, not just correctness.** AI code can be syntactically perfect, pass all CI checks, and still do the wrong thing. The review question "Did the author document what the agent was asked to do?" matters most — if there's no PR description, ask for one before approving. See [`templates/review-checklist.md`](../templates/review-checklist.md) for the full checklist.
+
+**Loop the agent into the PR review itself.** Once your team has the Claude GitHub app installed, you can mention `@claude` on a pull request and the agent responds in-thread — fixes failing CI, addresses a review comment, implements an inline TODO. Treat its comments and commits with the same approval gates you'd apply to any other contributor; the audit trail is the same. Useful when the agent should run *asynchronously* in response to a human review, rather than locally during authoring.
+
+Source: [Introducing Claude 4](https://www.anthropic.com/news/claude-4).
 
 **When two agents produce conflicting approaches:** resolve it in PR review, not by silently overwriting one. Record why one approach was chosen — future agents and teammates will encounter the same decision.
 

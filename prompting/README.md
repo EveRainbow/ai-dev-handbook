@@ -153,6 +153,24 @@ What is likely wrong and how would you fix it?
 
 ---
 
+## 🧩 Multi-step Patterns
+
+Once the task exceeds one prompt, pick a structure that matches the shape of the work.
+
+| Pattern | Shape | When to reach for it |
+|---|---|---|
+| **Prompt chaining** | A → B → C, each step's output feeds the next | The task breaks into fixed subtasks you can name upfront — draft → translate → polish is the canonical example. |
+| **Routing** | A classifier picks one of several specialist prompts | Inputs fall into distinct categories that each need their own handling — bug reports vs feature requests vs billing, for instance. |
+| **Parallelization** | Same task N times for voting, or N independent subtasks running side by side | You want either speed (independent subtasks) or higher confidence (majority vote across independent runs). |
+| **Orchestrator-workers** | One agent plans and assigns; worker agents execute; the orchestrator synthesizes | You can't enumerate the subtasks upfront — they emerge as the work unfolds. Cross-file refactors fit this. |
+| **Evaluator-optimizer** | A generator produces output; a separate critic grades it; loop until the grade passes | There's an explicit quality bar and iteration helps reach it — translation, structured output, polish passes. |
+
+Pick the pattern, then write each individual agent's prompt with the same execution-contract elements you'd use for a single one — scope, edit format, done condition, escalation. Multi-step doesn't excuse loose handoffs; it multiplies them.
+
+Source: [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents).
+
+---
+
 ## 💡 Giving Examples
 
 Examples outperform long descriptions every time.
