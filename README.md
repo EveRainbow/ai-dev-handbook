@@ -69,4 +69,4 @@ This handbook improves through real-world experience — yours included. If you'
 
 ---
 
-*[CHANGELOG](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [License](LICENSE) · Written with AI assistance*
+*[CHANGELOG](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [License](LICENSE) · Written with AI assistance · Written with AI assistance by [Eve](https://eveko.dev)*
